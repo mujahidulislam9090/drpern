@@ -8,6 +8,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { Readable } from "node:stream";
 
 export interface StorageProvider {
@@ -22,18 +23,43 @@ export interface StorageProvider {
 
 export class LocalStorageProvider implements StorageProvider {
   private baseDir: string;
+  private fallbackDir: string;
 
   constructor(customDir?: string) {
-    const targetDir =
-      customDir ||
-      process.env.LOCAL_STORAGE_DIR ||
-      path.join(process.cwd(), "storage", "uploads");
-    this.baseDir = path.isAbsolute(targetDir)
-      ? targetDir
-      : path.join(process.cwd(), targetDir);
+    this.fallbackDir = path.join(os.tmpdir(), "dropearn", "uploads");
+    
+    const isServerless = Boolean(
+      process.env.NETLIFY ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.LAMBDA_TASK_ROOT ||
+      process.env.VERCEL
+    );
 
-    if (!fs.existsSync(this.baseDir)) {
-      fs.mkdirSync(this.baseDir, { recursive: true });
+    const configuredDir = customDir || process.env.LOCAL_STORAGE_DIR;
+
+    if (isServerless && (!configuredDir || configuredDir.startsWith("./") || configuredDir.startsWith("storage/"))) {
+      this.baseDir = this.fallbackDir;
+    } else {
+      const targetDir = configuredDir || path.join(process.cwd(), "storage", "uploads");
+      this.baseDir = path.isAbsolute(targetDir)
+        ? targetDir
+        : path.join(process.cwd(), targetDir);
+    }
+
+    try {
+      if (!fs.existsSync(this.baseDir)) {
+        fs.mkdirSync(this.baseDir, { recursive: true });
+      }
+    } catch {
+      // In read-only serverless bundles, switch baseDir to writable /tmp
+      this.baseDir = this.fallbackDir;
+      try {
+        if (!fs.existsSync(this.baseDir)) {
+          fs.mkdirSync(this.baseDir, { recursive: true });
+        }
+      } catch (e) {
+        console.warn("[LocalStorageProvider] Failed to create tmp dir:", e);
+      }
     }
   }
 
@@ -51,37 +77,55 @@ export class LocalStorageProvider implements StorageProvider {
     return path.join(this.baseDir, safeKey);
   }
 
+  private resolveFallbackPath(key: string): string {
+    const safeKey = key.replace(/\.\./g, "").replace(/^\/+/, "");
+    return path.join(this.fallbackDir, safeKey);
+  }
+
   async uploadFile(key: string, buffer: Buffer): Promise<string> {
+    let filePath = this.resolvePath(key);
     try {
-      const filePath = this.resolvePath(key);
       const dir = path.dirname(filePath);
       if (!fs.existsSync(dir)) {
         await fs.promises.mkdir(dir, { recursive: true });
       }
       await fs.promises.writeFile(filePath, buffer);
       return key;
-    } catch (err: any) {
-      console.error("[LocalStorageProvider] Upload write error:", err);
-      throw new Error("Upload failed. Storage service is currently unavailable. Please try again later.");
+    } catch (primaryErr: any) {
+      // If primary path failed due to read-only filesystem, retry using writable /tmp
+      try {
+        filePath = this.resolveFallbackPath(key);
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+          await fs.promises.mkdir(dir, { recursive: true });
+        }
+        await fs.promises.writeFile(filePath, buffer);
+        this.baseDir = this.fallbackDir;
+        return key;
+      } catch (fallbackErr: any) {
+        console.error("[LocalStorageProvider] Upload write error:", fallbackErr);
+        throw new Error("Upload failed. Storage disk is unavailable. Please try again.");
+      }
     }
   }
 
   async exists(key: string): Promise<boolean> {
-    const filePath = this.resolvePath(key);
-    try {
-      await fs.promises.access(filePath, fs.constants.F_OK);
-      return true;
-    } catch {
-      return false;
-    }
+    const primary = this.resolvePath(key);
+    if (fs.existsSync(primary)) return true;
+    const fallback = this.resolveFallbackPath(key);
+    return fs.existsSync(fallback);
   }
 
   async getFileStream(key: string): Promise<Readable> {
-    const filePath = this.resolvePath(key);
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`File not found in local storage: ${key}`);
+    const primary = this.resolvePath(key);
+    if (fs.existsSync(primary)) {
+      return fs.createReadStream(primary);
     }
-    return fs.createReadStream(filePath);
+    const fallback = this.resolveFallbackPath(key);
+    if (fs.existsSync(fallback)) {
+      return fs.createReadStream(fallback);
+    }
+    throw new Error(`File not found in local storage: ${key}`);
   }
 
   async getDownloadUrl(key: string, originalFilename?: string): Promise<string> {
@@ -92,13 +136,15 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async deleteFile(key: string): Promise<void> {
-    const filePath = this.resolvePath(key);
-    try {
-      if (fs.existsSync(filePath)) {
-        await fs.promises.unlink(filePath);
+    const paths = [this.resolvePath(key), this.resolveFallbackPath(key)];
+    for (const p of paths) {
+      try {
+        if (fs.existsSync(p)) {
+          await fs.promises.unlink(p);
+        }
+      } catch (err) {
+        console.warn(`[LocalStorageProvider] Warning deleting ${p}:`, err);
       }
-    } catch (err) {
-      console.warn(`[LocalStorageProvider] Warning deleting ${key}:`, err);
     }
   }
 }
@@ -141,7 +187,7 @@ export class CloudStorageProvider implements StorageProvider {
       return key;
     } catch (err: any) {
       console.error("[CloudStorageProvider] S3 upload error:", err);
-      throw new Error("Upload failed. Storage service is currently unavailable. Please try again later.");
+      throw new Error("Upload failed. Cloud storage service is currently unavailable.");
     }
   }
 
