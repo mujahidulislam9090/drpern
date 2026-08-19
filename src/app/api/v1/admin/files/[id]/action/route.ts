@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/services/authService";
 import { processAdminFileAction } from "@/lib/services/adminService";

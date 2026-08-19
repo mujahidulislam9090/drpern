@@ -11,8 +11,7 @@ export const prisma =
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobal = prisma;
-}
+// Always retain global reference to prevent connection exhaustion in serverless runtimes
+globalThis.prismaGlobal = prisma;
 
 export default prisma;

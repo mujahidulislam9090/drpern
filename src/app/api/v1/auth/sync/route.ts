@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { verifyFirebaseIdToken } from "@/lib/firebase/admin";
 import { getOrCreateUserFromFirebase } from "@/lib/services/authService";

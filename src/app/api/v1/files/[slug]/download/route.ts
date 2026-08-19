@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/services/authService";
 import { processDownload } from "@/lib/services/downloadService";

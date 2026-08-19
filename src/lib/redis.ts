@@ -42,36 +42,111 @@ class MemoryCache {
   }
 }
 
-declare global {
-  // eslint-disable-next-line no-var
-  var redisGlobal: Redis | MemoryCache | undefined;
-}
+class SafeRedisClient {
+  private client: Redis | null = null;
+  private fallback = new MemoryCache();
+  private isConnected = false;
 
-function createRedisClient() {
-  if (process.env.REDIS_URL) {
-    try {
-      const client = new Redis(process.env.REDIS_URL, {
-        maxRetriesPerRequest: 1,
-        retryStrategy(times) {
-          if (times > 3) return null;
-          return Math.min(times * 50, 1000);
-        },
-      });
-      client.on("error", (err) => {
-        console.warn("Redis connection error, falling back to memory cache:", err.message);
-      });
-      return client;
-    } catch {
-      return new MemoryCache();
+  constructor() {
+    const redisUrl = process.env.REDIS_URL;
+    if (redisUrl && !redisUrl.includes("your-redis") && redisUrl.startsWith("redis")) {
+      try {
+        this.client = new Redis(redisUrl, {
+          maxRetriesPerRequest: 1,
+          connectTimeout: 3000,
+          commandTimeout: 3000,
+          enableReadyCheck: false,
+          lazyConnect: true,
+          retryStrategy(times) {
+            if (times > 2) return null;
+            return Math.min(times * 100, 1000);
+          },
+        });
+
+        this.client.connect().then(() => {
+          this.isConnected = true;
+        }).catch(() => {
+          this.isConnected = false;
+        });
+
+        this.client.on("connect", () => {
+          this.isConnected = true;
+        });
+
+        this.client.on("error", () => {
+          this.isConnected = false;
+        });
+      } catch {
+        this.client = null;
+      }
     }
   }
-  return new MemoryCache();
+
+  async get(key: string): Promise<string | null> {
+    if (this.client && this.isConnected) {
+      try {
+        return await this.client.get(key);
+      } catch {
+        return await this.fallback.get(key);
+      }
+    }
+    return await this.fallback.get(key);
+  }
+
+  async set(key: string, value: string, mode?: string, duration?: number): Promise<string> {
+    if (this.client && this.isConnected) {
+      try {
+        if (mode === "EX" && typeof duration === "number") {
+          return await this.client.set(key, value, "EX", duration);
+        }
+        return await this.client.set(key, value);
+      } catch {
+        return await this.fallback.set(key, value, mode, duration);
+      }
+    }
+    return await this.fallback.set(key, value, mode, duration);
+  }
+
+  async del(key: string): Promise<number> {
+    if (this.client && this.isConnected) {
+      try {
+        return await this.client.del(key);
+      } catch {
+        return await this.fallback.del(key);
+      }
+    }
+    return await this.fallback.del(key);
+  }
+
+  async incr(key: string): Promise<number> {
+    if (this.client && this.isConnected) {
+      try {
+        return await this.client.incr(key);
+      } catch {
+        return await this.fallback.incr(key);
+      }
+    }
+    return await this.fallback.incr(key);
+  }
+
+  async expire(key: string, seconds: number): Promise<number> {
+    if (this.client && this.isConnected) {
+      try {
+        return await this.client.expire(key, seconds);
+      } catch {
+        return await this.fallback.expire(key, seconds);
+      }
+    }
+    return await this.fallback.expire(key, seconds);
+  }
 }
 
-export const redis = globalThis.redisGlobal ?? createRedisClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.redisGlobal = redis;
+declare global {
+  // eslint-disable-next-line no-var
+  var redisGlobal: SafeRedisClient | undefined;
 }
+
+export const redis = globalThis.redisGlobal ?? new SafeRedisClient();
+globalThis.redisGlobal = redis;
 
 export default redis;

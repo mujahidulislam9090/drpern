@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { getFileBySlug, deleteUserFile } from "@/lib/services/fileService";
 import { getUserFromRequest, requireAuth } from "@/lib/services/authService";
