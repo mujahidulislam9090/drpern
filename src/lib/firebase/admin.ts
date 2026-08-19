@@ -1,5 +1,20 @@
 import * as admin from "firebase-admin";
 
+function cleanPrivateKey(key: string | undefined): string | undefined {
+  if (!key) return undefined;
+  let cleaned = key.trim();
+  if (
+    (cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+    (cleaned.startsWith("'") && cleaned.endsWith("'"))
+  ) {
+    cleaned = cleaned.slice(1, -1);
+  }
+  return cleaned
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n");
+}
+
 function getFirebaseAdminApp(): admin.app.App {
   if (admin.apps.length > 0 && admin.apps[0]) {
     return admin.apps[0];
@@ -8,11 +23,11 @@ function getFirebaseAdminApp(): admin.app.App {
   const projectId =
     process.env.FIREBASE_PROJECT_ID ||
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
-    "dropearn-dev";
+    "drop-eaarn";
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const rawKey = process.env.FIREBASE_PRIVATE_KEY;
+  const privateKey = cleanPrivateKey(rawKey);
 
-  // Check if real PEM private key is provided (not placeholder)
   const isRealKey =
     clientEmail &&
     privateKey &&
@@ -21,10 +36,6 @@ function getFirebaseAdminApp(): admin.app.App {
 
   if (isRealKey && privateKey && clientEmail) {
     try {
-      if (privateKey.includes("\\n")) {
-        privateKey = privateKey.replace(/\\n/g, "\n");
-      }
-
       return admin.initializeApp({
         credential: admin.credential.cert({
           projectId,
@@ -40,13 +51,13 @@ function getFirebaseAdminApp(): admin.app.App {
     }
   }
 
-  // Fallback app for local development or unconfigured admin SDK
+  // Fallback app for development or unconfigured environment
   try {
     return admin.initializeApp({
       projectId,
     });
   } catch {
-    return admin.apps[0] || admin.initializeApp({ projectId: "dropearn-dev" });
+    return admin.apps[0] || admin.initializeApp({ projectId: "drop-eaarn" });
   }
 }
 
