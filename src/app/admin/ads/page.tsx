@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { parseResponseJson } from "@/lib/utils";
 import {
   Megaphone,
   Save,
@@ -50,10 +51,10 @@ export default function AdminAdsPage() {
     setError("");
     try {
       const res = await fetch("/api/v1/admin/ads");
-      if (!res.ok) {
-        throw new Error("Unable to load advertisement settings from database.");
+      const { ok, data, error: loadErr } = await parseResponseJson(res);
+      if (!ok || !data) {
+        throw new Error(loadErr || "Unable to load advertisement settings from database.");
       }
-      const data = await res.json();
       setAdSensePublisherId(data.adSensePublisherId || "");
       setAdProviderEnabled(Boolean(data.adProviderEnabled));
       setAutoAdsEnabled(Boolean(data.autoAdsEnabled ?? true));
@@ -120,9 +121,9 @@ export default function AdminAdsPage() {
         }),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to save ad configuration");
+      const { ok, error: saveErr } = await parseResponseJson(res);
+      if (!ok) {
+        throw new Error(saveErr || "Failed to save ad configuration");
       }
 
       setSuccess("Advertisement placements and monetization settings saved successfully!");

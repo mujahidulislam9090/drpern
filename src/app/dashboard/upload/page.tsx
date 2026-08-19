@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { FILE_CATEGORIES } from "@/lib/constants";
-import { formatBytes } from "@/lib/utils";
+import { formatBytes, parseResponseJson } from "@/lib/utils";
 import {
   Upload,
   File,
@@ -123,12 +123,11 @@ export default function DashboardUploadPage() {
 
       setUploadProgress(85);
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Upload failed");
+      const { ok, data, error: uploadErr } = await parseResponseJson(res);
+      if (!ok || !data?.file) {
+        throw new Error(uploadErr || "Upload failed");
       }
 
-      const data = await res.json();
       setUploadProgress(100);
       setUploadedResult(data.file);
       fetchQuota();

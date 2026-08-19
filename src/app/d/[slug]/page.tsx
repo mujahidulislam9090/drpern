@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { formatBytes, formatDate } from "@/lib/utils";
+import { formatBytes, formatDate, parseResponseJson } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { AdPlacementSlot } from "@/components/monetization/AdPlacementSlot";
@@ -49,11 +49,11 @@ export default function DownloadPage() {
     // 1. Fetch file details
     fetch(`/api/v1/files/${slug}`)
       .then(async (res) => {
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error || "File not found");
+        const { ok, data, error } = await parseResponseJson(res);
+        if (!ok || !data?.file) {
+          throw new Error(error || "File not found");
         }
-        return res.json();
+        return data;
       })
       .then((data) => {
         setFile(data.file);
@@ -105,8 +105,8 @@ export default function DownloadPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
-      const data = await res.json();
-      if (data.valid) {
+      const { ok, data } = await parseResponseJson(res);
+      if (ok && data?.valid) {
         setIsUnlocked(true);
       } else {
         setPasswordError("Incorrect password");
@@ -135,12 +135,11 @@ export default function DownloadPage() {
         }),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Download failed");
+      const { ok, data, error: downloadErr } = await parseResponseJson(res);
+      if (!ok || !data) {
+        throw new Error(downloadErr || "Download failed");
       }
 
-      const data = await res.json();
       setDownloadCompleted(true);
 
       // Trigger download

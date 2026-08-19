@@ -15,6 +15,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { SessionUser } from "@/types";
 import { isFirebaseConfigured } from "@/lib/firebase/config";
+import { parseResponseJson } from "@/lib/utils";
 
 interface AuthContextType {
   user: SessionUser | null;
@@ -44,38 +45,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sync Firebase ID token with PostgreSQL backend API
   const syncWithBackend = async (token: string, refCode?: string): Promise<SessionUser> => {
-    const res = await fetch("/api/v1/auth/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, referralCode: refCode }),
-    });
+    try {
+      const res = await fetch("/api/v1/auth/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, referralCode: refCode }),
+      });
 
-    if (!res.ok) {
-      let errorMsg = "Authentication synchronization failed";
-      try {
-        const err = await res.json();
-        errorMsg = err.error || errorMsg;
-      } catch {
-        // Fallback message
+      const { ok, data, error } = await parseResponseJson<{ user: SessionUser }>(res);
+
+      if (!ok || !data?.user) {
+        const errorMsg = error || "Authentication synchronization failed";
+        console.error("[AuthContext] Backend sync failed:", errorMsg);
+        throw new Error(errorMsg);
       }
-      console.error("[AuthContext] Backend sync failed:", errorMsg);
-      throw new Error(errorMsg);
-    }
 
-    const data = await res.json();
-    if (!data.user) {
-      throw new Error("Server returned empty user profile");
+      setUser(data.user);
+      return data.user;
+    } catch (err: any) {
+      console.error("[AuthContext] Backend sync error:", err?.message || err);
+      throw err;
     }
-
-    setUser(data.user);
-    return data.user;
   };
 
   const refreshSession = async (): Promise<SessionUser | null> => {
     try {
       const res = await fetch("/api/v1/auth/session");
-      if (res.ok) {
-        const data = await res.json();
+      const { ok, data } = await parseResponseJson<{ user: SessionUser }>(res);
+      if (ok && data?.user) {
         setUser(data.user);
         return data.user;
       }

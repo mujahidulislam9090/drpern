@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { AdPlacementSlot } from "@/components/monetization/AdPlacementSlot";
 import { Flag, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
+import { parseResponseJson } from "@/lib/utils";
 import Link from "next/link";
 
 export default function ReportPage() {
@@ -36,9 +37,9 @@ export default function ReportPage() {
         }),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to submit report");
+      const { ok, error: reportErr } = await parseResponseJson(res);
+      if (!ok) {
+        throw new Error(reportErr || "Failed to submit report");
       }
 
       setSubmitted(true);

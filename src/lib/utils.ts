@@ -63,3 +63,39 @@ export function sanitizeFilename(filename: string): string {
   return basename.replace(/[^a-zA-Z0-9._-]/g, "_").replace(/^\.+/, "");
 }
 
+/**
+ * Safely parses response JSON without throwing "Unexpected character at line 1 column 1"
+ * if the server returns HTML (e.g. 500/502/404) or plain text.
+ */
+export async function parseResponseJson<T = any>(
+  res: Response,
+  fallback: T | null = null
+): Promise<{ ok: boolean; data: T | null; error: string | null }> {
+  try {
+    const text = await res.text();
+    if (!text || text.trim() === "") {
+      return {
+        ok: res.ok,
+        data: fallback,
+        error: res.ok ? null : `HTTP Error ${res.status}: ${res.statusText}`,
+      };
+    }
+    const parsed = JSON.parse(text);
+    if (!res.ok) {
+      return {
+        ok: false,
+        data: null,
+        error: parsed.error || `HTTP Error ${res.status}`,
+      };
+    }
+    return { ok: true, data: parsed, error: null };
+  } catch {
+    return {
+      ok: false,
+      data: fallback,
+      error: res.ok
+        ? "Received non-JSON response from server"
+        : `Server returned error (HTTP ${res.status})`,
+    };
+  }
+}

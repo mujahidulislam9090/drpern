@@ -554,7 +554,15 @@ export async function getAdminSettings(): Promise<SiteSettingsMap> {
     platformRevenuePercent: parseFloat(map.platformRevenuePercent) || DEFAULT_SITE_SETTINGS.platformRevenuePercent,
     minWithdrawal: parseFloat(map.minWithdrawal) || DEFAULT_SITE_SETTINGS.minWithdrawal,
     maxFileSizeMb: parseInt(map.maxFileSizeMb, 10) || DEFAULT_SITE_SETTINGS.maxFileSizeMb,
-    allowedMimeTypes: map.allowedMimeTypes ? JSON.parse(map.allowedMimeTypes) : DEFAULT_SITE_SETTINGS.allowedMimeTypes,
+    allowedMimeTypes: (() => {
+      if (!map.allowedMimeTypes) return DEFAULT_SITE_SETTINGS.allowedMimeTypes;
+      try {
+        const parsed = JSON.parse(map.allowedMimeTypes);
+        return Array.isArray(parsed) ? parsed : DEFAULT_SITE_SETTINGS.allowedMimeTypes;
+      } catch {
+        return map.allowedMimeTypes.split(",").map((s) => s.trim()).filter(Boolean);
+      }
+    })(),
     adProviderEnabled: map.adProviderEnabled === "true",
     adProviderKey: map.adProviderKey || DEFAULT_SITE_SETTINGS.adProviderKey,
     adSensePublisherId: map.adSensePublisherId || "",
