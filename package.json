@@ -10,7 +10,9 @@
     "db:push": "npx prisma db push",
     "db:generate": "npx prisma generate",
     "db:seed": "node --loader ts-node/esm prisma/seed.ts",
-    "test": "node --import tsx/esm tests/run-tests.ts"
+    "test": "node --import tsx/esm tests/run-tests.ts",
+    "make-admin": "node --import tsx/esm scripts/set-admin.ts",
+    "studio": "prisma studio"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.670.0",
