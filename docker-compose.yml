@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  # 1. Main Next.js Web Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dropearn-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://dropearn_user:dropearn_secure_password_123@postgres:5432/dropearn_db?schema=public
+      - REDIS_URL=redis://redis:6379
+      - STORAGE_PROVIDER=s3
+      - S3_ENDPOINT=http://minio:9000
+      - S3_REGION=us-east-1
+      - S3_BUCKET=dropearn-files
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin_secret
+      - S3_FORCE_PATH_STYLE=true
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    volumes:
+      - app_uploads:/app/storage/uploads
+    networks:
+      - dropearn-network
+
+  # 2. PostgreSQL 16 Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: dropearn-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: dropearn_user
+      POSTGRES_PASSWORD: dropearn_secure_password_123
+      POSTGRES_DB: dropearn_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - dropearn-network
+
+  # 3. Redis 7 Cache & Rate Limiting
+  redis:
+    image: redis:7-alpine
+    container_name: dropearn-redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - dropearn-network
+
+  # 4. MinIO S3 Compatible Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: dropearn-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin_secret
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - dropearn-network
+
+  # 5. Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: dropearn-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    networks:
+      - dropearn-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+  app_uploads:
+    driver: local
+
+networks:
+  dropearn-network:
+    driver: bridge

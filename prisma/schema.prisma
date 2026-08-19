@@ -1,0 +1,413 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum RevenueEventType {
+  DOWNLOAD_AD
+  DIRECT_MONETIZATION
+  PREMIUM
+  REFERRAL_BONUS
+}
+
+enum RevenueStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+enum LedgerType {
+  CREDIT_REVENUE
+  CREDIT_REFERRAL
+  DEBIT_WITHDRAWAL
+  ADJUSTMENT
+}
+
+enum LedgerStatus {
+  PENDING
+  AVAILABLE
+  LOCKED
+  PAID
+  CANCELLED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  PAID
+  REJECTED
+  CANCELLED
+}
+
+enum PayoutMethod {
+  PAYPAL
+  CRYPTO_USDT
+  CRYPTO_BTC
+  BANK_TRANSFER
+  OTHER
+}
+
+enum VisitorEventType {
+  PAGE_VIEW
+  DOWNLOAD_INTENT
+  DOWNLOAD_START
+}
+
+enum ReportStatus {
+  PENDING
+  INVESTIGATING
+  RESOLVED
+  DISMISSED
+}
+
+enum SettingType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+enum SettingCategory {
+  PLATFORM
+  REVENUE
+  UPLOADS
+  ADS
+  REGISTRATION
+}
+
+enum AdProviderKey {
+  ADSENSE
+  DIRECT
+  CUSTOM
+}
+
+enum AdPlacementLocation {
+  DOWNLOAD_TOP
+  DOWNLOAD_MIDDLE
+  DOWNLOAD_BOTTOM
+  DOWNLOAD_SIDEBAR
+  DOWNLOAD_COUNTDOWN
+  DOWNLOAD_COMPLETED
+  HOME_HERO_BOTTOM
+  HOME_MID_SECTION
+  HOME_FOOTER
+  RATES_TOP
+  RATES_BOTTOM
+  FAQ_BOTTOM
+  REPORT_BOTTOM
+  SIDEBAR
+  BANNER
+}
+
+model User {
+  id           String      @id @default(cuid())
+  firebaseUid  String      @unique
+  email        String      @unique
+  displayName  String?
+  avatarUrl    String?
+  role         Role        @default(USER)
+  status       UserStatus  @default(ACTIVE)
+  referralCode String      @unique
+  referredById String?
+  referredBy   User?       @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals    User[]      @relation("UserReferrals")
+
+  files          File[]
+  revenueEvents  RevenueEvent[]
+  ledgerEntries  EarningsLedger[]
+  withdrawals    Withdrawal[]
+  referredStats  Referral[]       @relation("ReferrerStats")
+  referredByStat Referral?        @relation("ReferredUserStat")
+  auditLogs      AuditLog[]       @relation("AdminAuditLogs")
+  resolvedReports Report[]        @relation("ResolvedReports")
+
+  lastLoginAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([firebaseUid])
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([referralCode])
+}
+
+model File {
+  id                     String    @id @default(cuid())
+  slug                   String    @unique
+  title                  String
+  description            String?   @db.Text
+  category               String    @default("General")
+  tags                   String[]  @default([])
+  originalName           String
+  mimeType               String
+  sizeBytes              BigInt
+  storageKey             String
+  storageBucket          String
+  passwordHash           String?
+  downloadLimit          Int?
+  downloadCount          Int       @default(0)
+  qualifiedDownloadCount Int       @default(0)
+  isPublic               Boolean   @default(true)
+  isEnabled              Boolean   @default(true)
+  isDeleted              Boolean   @default(false)
+  expiresAt              DateTime?
+  
+  uploaderId             String
+  uploader               User      @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  downloads     FileDownload[]
+  revenueEvents RevenueEvent[]
+  reports       Report[]
+  visitorEvents VisitorEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([uploaderId])
+  @@index([isEnabled, isDeleted])
+  @@index([createdAt])
+}
+
+model FileDownload {
+  id                   String    @id @default(cuid())
+  fileId               String
+  file                 File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  visitorSessionId     String
+  ipAddress            String
+  userAgent            String?
+  country              String?
+  isQualified          Boolean   @default(false)
+  qualificationReason  String?
+  downloadStartedAt    DateTime  @default(now())
+  downloadCompletedAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([fileId])
+  @@index([ipAddress])
+  @@index([visitorSessionId])
+  @@index([isQualified])
+  @@index([createdAt])
+}
+
+model VisitorEvent {
+  id         String           @id @default(cuid())
+  sessionId  String
+  ipAddress  String
+  userAgent  String?
+  pagePath   String
+  eventType  VisitorEventType @default(PAGE_VIEW)
+  referer    String?
+  
+  fileId     String?
+  file       File?            @relation(fields: [fileId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([ipAddress])
+  @@index([eventType])
+  @@index([pagePath])
+  @@index([fileId])
+  @@index([createdAt])
+}
+
+model RevenueEvent {
+  id                  String           @id @default(cuid())
+  eventType           RevenueEventType @default(DOWNLOAD_AD)
+  provider            String           @default("system")
+  rawAmount           Decimal          @db.Decimal(12, 4)
+  currency            String           @default("USD")
+  uploaderShareAmount Decimal          @db.Decimal(12, 4)
+  platformShareAmount Decimal          @db.Decimal(12, 4)
+  status              RevenueStatus    @default(CONFIRMED)
+  
+  fileId              String?
+  file                File?            @relation(fields: [fileId], references: [id], onDelete: SetNull)
+
+  uploaderId          String
+  uploader            User             @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  metadata            Json?
+  confirmedAt         DateTime?        @default(now())
+  createdAt           DateTime         @default(now())
+
+  ledgerEntries       EarningsLedger[]
+
+  @@index([uploaderId])
+  @@index([fileId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EarningsLedger {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  revenueEventId String?
+  revenueEvent   RevenueEvent? @relation(fields: [revenueEventId], references: [id], onDelete: SetNull)
+
+  withdrawalId   String?
+  withdrawal     Withdrawal?   @relation(fields: [withdrawalId], references: [id], onDelete: SetNull)
+
+  type           LedgerType
+  amount         Decimal      @db.Decimal(12, 4)
+  runningBalance Decimal      @db.Decimal(12, 4)
+  status         LedgerStatus @default(AVAILABLE)
+  description    String
+
+  createdAt      DateTime     @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Withdrawal {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount          Decimal          @db.Decimal(12, 4)
+  currency        String           @default("USD")
+  payoutMethod    PayoutMethod
+  payoutDetails   Json
+  status          WithdrawalStatus @default(PENDING)
+  adminNote       String?          @db.Text
+  rejectionReason String?          @db.Text
+
+  requestedAt     DateTime         @default(now())
+  processedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  ledgerEntries   EarningsLedger[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([requestedAt])
+}
+
+model Referral {
+  id             String   @id @default(cuid())
+  referrerId     String
+  referrer       User     @relation("ReferrerStats", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  referredUserId String   @unique
+  referredUser   User     @relation("ReferredUserStat", fields: [referredUserId], references: [id], onDelete: Cascade)
+
+  commissionRate Decimal  @default(0.10) @db.Decimal(5, 2)
+  totalEarned    Decimal  @default(0.0000) @db.Decimal(12, 4)
+
+  createdAt      DateTime @default(now())
+
+  @@index([referrerId])
+  @@index([referredUserId])
+}
+
+model AdProvider {
+  id          String        @id @default(cuid())
+  name        String
+  providerKey AdProviderKey @default(DIRECT)
+  scriptUrl   String?
+  adSlotId    String?
+  isEnabled   Boolean       @default(false)
+  config      Json?
+
+  placements  AdPlacement[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([providerKey])
+  @@index([isEnabled])
+}
+
+model AdPlacement {
+  id         String              @id @default(cuid())
+  name       String
+  location   AdPlacementLocation @unique
+  isEnabled  Boolean             @default(false)
+
+  providerId String?
+  provider   AdProvider?         @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@index([location])
+  @@index([isEnabled])
+}
+
+model Report {
+  id            String       @id @default(cuid())
+  fileId        String
+  file          File         @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  reporterEmail String?
+  reporterIp    String
+  reason        String
+  details       String?      @db.Text
+  status        ReportStatus @default(PENDING)
+
+  resolvedById  String?
+  resolvedBy    User?        @relation("ResolvedReports", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt    DateTime?
+
+  createdAt     DateTime     @default(now())
+
+  @@index([fileId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String?
+  admin      User?    @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: SetNull)
+  
+  action     String
+  targetType String
+  targetId   String?
+  details    Json?
+  ipAddress  String?
+
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+model SiteSetting {
+  id        String          @id @default(cuid())
+  key       String          @unique
+  value     String          @db.Text
+  type      SettingType     @default(STRING)
+  category  SettingCategory @default(PLATFORM)
+  updatedAt DateTime        @updatedAt
+
+  @@index([key])
+  @@index([category])
+}
