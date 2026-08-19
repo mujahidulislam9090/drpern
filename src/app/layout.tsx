@@ -16,17 +16,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const adSenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  const adSenseClientId =
+    process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-1544515292334176";
 
   return (
     <html lang="en" className="dark">
       <head>
+        {/* Google AdSense Official Script & Auto Ads */}
         {adSenseClientId && adSenseClientId.startsWith("ca-pub-") && (
-          <Script
+          <script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adSenseClientId}`}
             crossOrigin="anonymous"
-            strategy="lazyOnload"
           />
         )}
       </head>
