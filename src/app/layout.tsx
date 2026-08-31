@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     "creator monetization",
   ],
   authors: [{ name: "DropEarn Team" }],
+  other: {
+    "google-adsense-account": "ca-pub-1544515292334176",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -70,9 +73,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const adSenseClientId =
-    process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-1544515292334176";
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -80,13 +80,11 @@ export default function RootLayout({
         <meta name="google-adsense-account" content="ca-pub-1544515292334176" />
 
         {/* Google AdSense Official Script & Auto Ads */}
-        {adSenseClientId && adSenseClientId.startsWith("ca-pub-") && (
-          <script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adSenseClientId}`}
-            crossOrigin="anonymous"
-          />
-        )}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1544515292334176"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="bg-[var(--background)] text-[var(--foreground)] antialiased min-h-screen flex flex-col selection:bg-blue-600 selection:text-white transition-colors duration-150">
         <ThemeProvider>
