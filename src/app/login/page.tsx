@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Button } from "@/components/ui/Button";
-import { Mail, Lock, ArrowRight, FileUp, Loader2 } from "lucide-react";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+import { Mail, ArrowRight, FileUp, Loader2 } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -65,7 +66,10 @@ function LoginForm() {
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium leading-relaxed">
+        <div
+          role="alert"
+          className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium leading-relaxed"
+        >
           {error}
         </div>
       )}
@@ -117,6 +121,7 @@ function LoginForm() {
             <input
               type="email"
               required
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -131,17 +136,13 @@ function LoginForm() {
               Password
             </label>
           </div>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
-            />
-          </div>
+          <PasswordInput
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
         </div>
 
         <Button type="submit" loading={loading} className="w-full mt-2" size="lg">

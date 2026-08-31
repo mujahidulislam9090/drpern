@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "../auth/AuthContext";
 import { AuthModal } from "../auth/AuthModal";
 import { Button } from "../ui/Button";
+import { ThemeToggle } from "../theme/ThemeToggle";
 import {
   Upload,
   LayoutDashboard,
@@ -36,10 +37,10 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80">
+      <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/" aria-label="DropEarn Home" className="flex items-center gap-2.5 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
               <FileUp className="w-5 h-5" />
             </div>
@@ -51,7 +52,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 text-sm font-medium">
             <Link
               href="/"
               className="text-slate-300 hover:text-white transition-colors"
@@ -65,6 +66,18 @@ export function Navbar() {
               <Upload className="w-4 h-4 text-blue-400" />
               <span>Upload</span>
             </Link>
+            <Link
+              href="/rates"
+              className="text-slate-300 hover:text-white transition-colors"
+            >
+              Rates & Payouts
+            </Link>
+            <Link
+              href="/faq"
+              className="text-slate-300 hover:text-white transition-colors"
+            >
+              FAQ
+            </Link>
             {user && (
               <>
                 <Link
@@ -73,20 +86,6 @@ export function Navbar() {
                 >
                   <LayoutDashboard className="w-4 h-4 text-indigo-400" />
                   <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/dashboard/analytics"
-                  className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
-                >
-                  <TrendingUp className="w-4 h-4 text-purple-400" />
-                  <span>Analytics</span>
-                </Link>
-                <Link
-                  href="/dashboard/withdraw"
-                  className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
-                >
-                  <CreditCard className="w-4 h-4 text-emerald-400" />
-                  <span>Revenue & Payouts</span>
                 </Link>
               </>
             )}
@@ -101,15 +100,20 @@ export function Navbar() {
             )}
           </nav>
 
-          {/* Auth Actions */}
+          {/* Actions: Theme Toggle + Auth */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
+
             {loading ? (
               <div className="h-9 w-24 rounded-xl bg-slate-800 animate-pulse" />
             ) : user ? (
               <div className="relative">
                 <button
+                  type="button"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-slate-200 transition-colors text-sm"
+                  aria-expanded={userDropdownOpen}
+                  aria-haspopup="menu"
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-slate-200 transition-colors text-sm cursor-pointer"
                 >
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 font-bold text-xs">
                     {user.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}

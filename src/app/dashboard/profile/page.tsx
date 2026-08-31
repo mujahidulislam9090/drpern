@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Button } from "@/components/ui/Button";
+import { OTPVerificationModal } from "@/components/auth/OTPVerificationModal";
 import {
   User as UserIcon,
   Mail,
-  Shield,
+  ShieldCheck,
   Calendar,
   Clock,
   KeyRound,
@@ -14,6 +15,8 @@ import {
   AlertCircle,
   Save,
   Image as ImageIcon,
+  Smartphone,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -24,6 +27,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpChannel, setOtpChannel] = useState<"EMAIL" | "SMS" | "WHATSAPP">("EMAIL");
 
   useEffect(() => {
     if (user) {
@@ -98,7 +103,7 @@ export default function ProfilePage() {
           Account Profile
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          Manage your public creator profile and account identity details
+          Manage your public creator profile and verified account identity records
         </p>
       </div>
 
@@ -148,6 +153,37 @@ export default function ProfilePage() {
               {user.displayName || "Creator"}
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
+          </div>
+
+          {/* Verification Status Pills */}
+          <div className="w-full space-y-2 pt-2">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-blue-400" />
+                <span className="text-slate-300">Email Status</span>
+              </div>
+              <span className="font-semibold text-emerald-400 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Verified</span>
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-purple-400" />
+                <span className="text-slate-300">Phone 2FA</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpChannel("SMS");
+                  setShowOtpModal(true);
+                }}
+                className="text-blue-400 hover:underline font-semibold cursor-pointer"
+              >
+                Set Up
+              </button>
+            </div>
           </div>
 
           <div className="w-full pt-4 border-t border-slate-800/80 space-y-2 text-left text-xs text-slate-300">
@@ -208,7 +244,7 @@ export default function ProfilePage() {
                 />
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
-                Enter a direct image link (HTTPS) or use default initial avatar.
+                Enter a direct image link (HTTPS) or leave empty for default initials.
               </p>
             </div>
 
@@ -262,6 +298,18 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      <OTPVerificationModal
+        isOpen={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        destination={user.email}
+        defaultChannel={otpChannel}
+        purpose="LOGIN_2FA"
+        onSuccess={() => {
+          setShowOtpModal(false);
+          refreshSession();
+        }}
+      />
     </div>
   );
 }

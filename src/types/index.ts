@@ -10,6 +10,11 @@ export interface SessionUser {
   role: Role;
   status: UserStatus;
   referralCode: string;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
+  phoneNumber?: string | null;
+  onboardingCompleted?: boolean;
+  preferences?: any;
   lastLoginAt?: string | null;
   createdAt?: string;
 }

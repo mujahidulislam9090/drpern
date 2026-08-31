@@ -1,10 +1,11 @@
 import { PrismaClient, LedgerType, WithdrawalStatus, Role, UserStatus, AdPlacementLocation } from "@prisma/client";
 import Decimal from "decimal.js";
 import bcrypt from "bcryptjs";
-import { nanoid } from "nanoid";
+import crypto from "node:crypto";
 import { sanitizeFilename, formatBytes, formatCurrency } from "../src/lib/utils";
 import { LocalStorageProvider } from "../src/lib/storage";
 import { DEFAULT_STORAGE_LIMITS } from "../src/lib/services/fileService";
+import { hashOtp, maskDestination, getAvailableVerificationChannels } from "../src/lib/services/otpService";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -237,6 +238,39 @@ async function runTests() {
     assert(decodedJson.user_id === "fb_test_user_999", "Fallback correctly extracts user_id");
     assert(decodedJson.email === "testcreator@example.com", "Fallback correctly extracts email");
     assert(decodedJson.name === "Test Creator", "Fallback correctly extracts displayName");
+
+    // -------------------------------------------------------------------------
+    // TEST 10: Cryptographic OTP Generation & SHA-256 Hashing
+    // -------------------------------------------------------------------------
+    console.log("\n--- Test Group 10: Cryptographic OTP & SHA-256 Hashing ---");
+    const testEmail = "creator@dropearn.com";
+    const testOtp = "584920";
+    const otpHashA = hashOtp(testOtp, testEmail);
+    const otpHashB = hashOtp(testOtp, testEmail);
+    const otpHashWrong = hashOtp("123456", testEmail);
+
+    assert(otpHashA === otpHashB, "Deterministic HMAC-SHA256 hash generated for matching OTP and destination");
+    assert(otpHashA !== otpHashWrong, "Different OTP generates distinct non-colliding hash");
+
+    const isMatchValid = crypto.timingSafeEqual(Buffer.from(otpHashA, "hex"), Buffer.from(otpHashB, "hex"));
+    assert(isMatchValid === true, "Constant-time comparison succeeds on valid OTP hash");
+
+    // -------------------------------------------------------------------------
+    // TEST 11: Destination Masking (Email & Phone Number)
+    // -------------------------------------------------------------------------
+    console.log("\n--- Test Group 11: Destination Masking ---");
+    const maskedEmail = maskDestination("mujahid@gmail.com", "EMAIL");
+    const maskedPhone = maskDestination("+15551234567", "SMS");
+
+    assert(maskedEmail.startsWith("m***") && maskedEmail.endsWith("@gmail.com"), "Email masked securely without leaking local-part: " + maskedEmail);
+    assert(maskedPhone.includes("******"), "Phone number masked securely: " + maskedPhone);
+
+    // -------------------------------------------------------------------------
+    // TEST 12: Verification Channel Service Availability
+    // -------------------------------------------------------------------------
+    console.log("\n--- Test Group 12: Multi-Channel Verification Providers ---");
+    const availableChannels = getAvailableVerificationChannels();
+    assert(availableChannels.length === 3, "All 3 verification channels (Email, SMS, WhatsApp) registered in engine");
 
     console.log("\n=================================================");
     console.log(`🎉 TEST RESULTS: ${passed} PASSED, ${failed} FAILED`);

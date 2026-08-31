@@ -4,13 +4,26 @@ import React, { useState } from "react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { User, Mail, Key, Shield, CheckCircle2 } from "lucide-react";
+import { CookiePreferencesModal, CookiePreferences } from "@/components/privacy/CookiePreferencesModal";
+import { DeleteAccountModal } from "@/components/auth/DeleteAccountModal";
+import {
+  User,
+  Shield,
+  CheckCircle2,
+  SlidersHorizontal,
+  Bell,
+  Trash2,
+  Lock,
+} from "lucide-react";
 
 export default function UserSettingsPage() {
   const { user } = useAuth();
   const [defaultPayoutMethod, setDefaultPayoutMethod] = useState("PAYPAL");
   const [defaultPayoutAddress, setDefaultPayoutAddress] = useState("");
+  const [emailNotifications, setEmailNotifications] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [showCookieModal, setShowCookieModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,20 +31,27 @@ export default function UserSettingsPage() {
     setTimeout(() => setSaved(false), 2500);
   };
 
+  const handleSaveCookies = (prefs: CookiePreferences) => {
+    localStorage.setItem("dropearn_cookie_preferences", JSON.stringify(prefs));
+  };
+
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="space-y-8 max-w-4xl">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
           Account Settings
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Manage your account profile, security credentials, and payout preferences.
+          Manage your account profile, payout methods, privacy preferences, and security.
         </p>
       </div>
 
       {saved && (
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-fade-in">
+        <div
+          role="status"
+          className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-fade-in"
+        >
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>Preferences saved successfully.</span>
         </div>
@@ -88,7 +108,7 @@ export default function UserSettingsPage() {
       {/* Payout Preferences */}
       <div className="rounded-2xl glass-card p-6 sm:p-8 border border-slate-800 space-y-6">
         <h3 className="text-base font-bold text-white flex items-center gap-2">
-          <Shield className="w-4 h-4 text-blue-400" />
+          <Shield className="w-4 h-4 text-emerald-400" />
           <span>Payout Preferences</span>
         </h3>
 
@@ -123,10 +143,66 @@ export default function UserSettingsPage() {
           </div>
 
           <Button type="submit" size="sm">
-            Save Preferences
+            Save Payout Preferences
           </Button>
         </form>
       </div>
+
+      {/* Notifications & Privacy */}
+      <div className="rounded-2xl glass-card p-6 sm:p-8 border border-slate-800 space-y-6">
+        <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <SlidersHorizontal className="w-4 h-4 text-purple-400" />
+          <span>Privacy & Cookie Preferences</span>
+        </h3>
+
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Control which categories of browser cookies and tracking tools DropEarn uses on your device.
+        </p>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowCookieModal(true)}
+          className="text-xs"
+        >
+          <SlidersHorizontal className="w-4 h-4 mr-2" />
+          <span>Manage Cookie Preferences</span>
+        </Button>
+      </div>
+
+      {/* Danger Zone: Account Deletion */}
+      <div className="rounded-2xl glass-card p-6 sm:p-8 border border-red-500/30 space-y-4">
+        <div className="flex items-center gap-2 text-red-400">
+          <Trash2 className="w-5 h-5" />
+          <h3 className="text-base font-bold text-white">Danger Zone</h3>
+        </div>
+
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Permanently delete your creator account, uploaded files, and all associated earnings data. This action cannot be undone.
+        </p>
+
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={() => setShowDeleteModal(true)}
+          className="text-xs"
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          <span>Delete Account</span>
+        </Button>
+      </div>
+
+      {/* Modals */}
+      <CookiePreferencesModal
+        isOpen={showCookieModal}
+        onClose={() => setShowCookieModal(false)}
+        onSave={handleSaveCookies}
+      />
+
+      <DeleteAccountModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }

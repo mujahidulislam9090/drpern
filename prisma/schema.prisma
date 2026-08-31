@@ -123,19 +123,25 @@ model User {
   avatarUrl    String?
   role         Role        @default(USER)
   status       UserStatus  @default(ACTIVE)
-  referralCode String      @unique
-  referredById String?
-  referredBy   User?       @relation("UserReferrals", fields: [referredById], references: [id])
-  referrals    User[]      @relation("UserReferrals")
+  referralCode        String      @unique
+  referredById        String?
+  referredBy          User?       @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals           User[]      @relation("UserReferrals")
+  emailVerified       Boolean     @default(false)
+  phoneVerified       Boolean     @default(false)
+  phoneNumber         String?
+  onboardingCompleted Boolean     @default(false)
+  preferences         Json?
 
   files          File[]
   revenueEvents  RevenueEvent[]
   ledgerEntries  EarningsLedger[]
   withdrawals    Withdrawal[]
-  referredStats  Referral[]       @relation("ReferrerStats")
-  referredByStat Referral?        @relation("ReferredUserStat")
-  auditLogs      AuditLog[]       @relation("AdminAuditLogs")
-  resolvedReports Report[]        @relation("ResolvedReports")
+  referredStats  Referral[]        @relation("ReferrerStats")
+  referredByStat Referral?         @relation("ReferredUserStat")
+  auditLogs      AuditLog[]        @relation("AdminAuditLogs")
+  resolvedReports Report[]         @relation("ResolvedReports")
+  otpVerifications OtpVerification[]
 
   lastLoginAt DateTime?
   createdAt DateTime @default(now())
@@ -146,6 +152,7 @@ model User {
   @@index([role])
   @@index([status])
   @@index([referralCode])
+  @@index([emailVerified])
 }
 
 model File {
@@ -411,3 +418,42 @@ model SiteSetting {
   @@index([key])
   @@index([category])
 }
+
+enum VerificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum VerificationPurpose {
+  SIGNUP_VERIFICATION
+  LOGIN_2FA
+  PASSWORD_RESET
+  WITHDRAWAL_CONFIRM
+}
+
+model OtpVerification {
+  id                String              @id @default(cuid())
+  userId            String?
+  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination       String
+  channel           VerificationChannel @default(EMAIL)
+  purpose           VerificationPurpose @default(SIGNUP_VERIFICATION)
+  otpHash           String
+  attempts          Int                 @default(0)
+  maxAttempts       Int                 @default(5)
+  expiresAt         DateTime
+  resendAvailableAt DateTime
+  isUsed            Boolean             @default(false)
+  usedAt            DateTime?
+  ipAddress         String?
+  userAgent         String?
+
+  createdAt         DateTime            @default(now())
+
+  @@index([destination, purpose, isUsed])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
