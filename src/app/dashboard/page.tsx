@@ -23,6 +23,7 @@ import {
   Activity,
   CheckCircle2,
   HardDrive,
+  Sparkles,
 } from "lucide-react";
 
 export default function DashboardOverviewPage() {
@@ -107,21 +108,21 @@ export default function DashboardOverviewPage() {
       : 0;
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in max-w-7xl">
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Creator Dashboard
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Real-time verified creator metrics, revenue balances, and file activity
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Link href="/dashboard/upload">
-            <Button size="sm">
+            <Button size="sm" className="shadow-md shadow-blue-600/20">
               <Upload className="w-4 h-4 mr-1.5" />
               <span>Upload File</span>
             </Button>
@@ -131,7 +132,7 @@ export default function DashboardOverviewPage() {
 
       {/* Revenue Section */}
       <div>
-        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+        <h2 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
           Revenue Balances
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
@@ -143,7 +144,7 @@ export default function DashboardOverviewPage() {
                 ? "Ready for payout withdrawal"
                 : "No available balance yet"
             }
-            icon={<DollarSign className="w-5 h-5 text-emerald-400" />}
+            icon={<DollarSign className="w-5 h-5 text-emerald-500" />}
             highlight={true}
           />
 
@@ -151,14 +152,14 @@ export default function DashboardOverviewPage() {
             title="Pending Earnings"
             value={formatCurrency(balances.pendingBalance)}
             subtitle="Awaiting qualification review"
-            icon={<Clock className="w-5 h-5 text-amber-400" />}
+            icon={<Clock className="w-5 h-5 text-amber-500" />}
           />
 
           <StatCard
             title="Lifetime Earnings"
             value={formatCurrency(balances.lifetimeEarnings)}
             subtitle="Total all-time earned revenue"
-            icon={<TrendingUp className="w-5 h-5 text-purple-400" />}
+            icon={<TrendingUp className="w-5 h-5 text-purple-500" />}
           />
         </div>
       </div>
@@ -166,140 +167,140 @@ export default function DashboardOverviewPage() {
       {/* Downloads, Files & Storage Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Downloads */}
-        <div className="rounded-2xl glass-card p-6 border border-slate-800 space-y-4">
+        <div className="rounded-3xl glass-card p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-md">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Download className="w-4 h-4 text-blue-400" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Download className="w-4 h-4 text-blue-500" />
               <span>Download Activity</span>
             </h3>
             <Link
               href="/dashboard/downloads"
-              className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold"
             >
               View logs →
             </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-2">
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-              <span className="text-[11px] text-slate-400 block">Today</span>
-              <span className="text-base font-bold text-white">{downloads.today}</span>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Today</span>
+              <span className="text-base font-black text-slate-900 dark:text-white">{downloads.today}</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-              <span className="text-[11px] text-slate-400 block">7 Days</span>
-              <span className="text-base font-bold text-white">{downloads.last7Days}</span>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">7 Days</span>
+              <span className="text-base font-black text-slate-900 dark:text-white">{downloads.last7Days}</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-              <span className="text-[11px] text-slate-400 block">30 Days</span>
-              <span className="text-base font-bold text-white">{downloads.last30Days}</span>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">30 Days</span>
+              <span className="text-base font-black text-slate-900 dark:text-white">{downloads.last30Days}</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-              <span className="text-[11px] text-slate-400 block">Lifetime</span>
-              <span className="text-base font-bold text-emerald-400">{downloads.lifetime}</span>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Lifetime</span>
+              <span className="text-base font-black text-emerald-600 dark:text-emerald-400">{downloads.lifetime}</span>
             </div>
           </div>
         </div>
 
         {/* Files Overview */}
-        <div className="rounded-2xl glass-card p-6 border border-slate-800 space-y-4">
+        <div className="rounded-3xl glass-card p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-md">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <FolderOpen className="w-4 h-4 text-indigo-400" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <FolderOpen className="w-4 h-4 text-indigo-500" />
               <span>Files Status</span>
             </h3>
             <Link
               href="/dashboard/files"
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+              className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
             >
               Manage all →
             </Link>
           </div>
 
           <div className="grid grid-cols-3 gap-2 pt-2">
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-              <span className="text-[11px] text-slate-400 block">Total</span>
-              <span className="text-base font-bold text-white mt-0.5">{fileStats.total}</span>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-center">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Total</span>
+              <span className="text-base font-black text-slate-900 dark:text-white mt-0.5">{fileStats.total}</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-              <span className="text-[11px] text-slate-400 block">Active</span>
-              <span className="text-base font-bold text-emerald-400 mt-0.5">{fileStats.active}</span>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-center">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Active</span>
+              <span className="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{fileStats.active}</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-              <span className="text-[11px] text-slate-400 block">Disabled</span>
-              <span className="text-base font-bold text-amber-400 mt-0.5">{fileStats.disabled}</span>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-center">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Disabled</span>
+              <span className="text-base font-black text-amber-600 dark:text-amber-400 mt-0.5">{fileStats.disabled}</span>
             </div>
           </div>
         </div>
 
         {/* Storage Quota Usage */}
-        <div className="rounded-2xl glass-card p-6 border border-slate-800 space-y-4">
+        <div className="rounded-3xl glass-card p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-md">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-purple-400" />
-              <span>Storage Used</span>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <HardDrive className="w-4 h-4 text-purple-500" />
+              <span>Storage Quota</span>
             </h3>
-            <span className="text-xs font-mono text-purple-300">
+            <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
               {storageUsage ? `${storageUsage.usedMb} MB / ${storageUsage.limitMb} MB` : "0 MB / 1024 MB"}
             </span>
           </div>
 
           <div className="space-y-2 pt-2">
-            <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+            <div className="h-2.5 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  quotaPercent > 80 ? "bg-amber-500" : "bg-purple-500"
+                  quotaPercent > 80 ? "bg-amber-500" : "bg-purple-600"
                 }`}
                 style={{ width: `${quotaPercent}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 font-medium">
               <span>{quotaPercent}% quota used</span>
-              <span>Free tier quota (1 GB)</span>
+              <span>Free creator tier (1 GB)</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Recent Activity Feed */}
-      <div className="rounded-2xl glass-card p-6 border border-slate-800 space-y-4">
+      <div className="rounded-3xl glass-card p-6 sm:p-8 border border-slate-200 dark:border-slate-800 space-y-4 shadow-md">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-400" />
+          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Activity className="w-4 h-4 text-emerald-500" />
             <span>Recent Financial & Download Activity</span>
           </h3>
           <Link
             href="/dashboard/earnings"
-            className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+            className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold"
           >
             Full ledger →
           </Link>
         </div>
 
         {recentActivity.length === 0 ? (
-          <p className="text-xs text-slate-500 py-4 text-center">
+          <p className="text-xs text-slate-500 py-6 text-center font-medium">
             No activity yet. Upload a file and share your link to start generating earnings.
           </p>
         ) : (
-          <div className="divide-y divide-slate-800/60 text-xs">
+          <div className="divide-y divide-slate-200 dark:divide-slate-800/60 text-xs">
             {recentActivity.map((act) => (
               <div
                 key={act.id}
-                className="py-3 flex items-center justify-between gap-4 hover:bg-slate-800/20 px-2 rounded-xl transition-colors"
+                className="py-3 flex items-center justify-between gap-4 hover:bg-slate-100 dark:hover:bg-slate-800/20 px-2 rounded-xl transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                  <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-semibold text-white">
+                    <p className="font-bold text-slate-900 dark:text-white">
                       {act.fileTitle ? `Download for ${act.fileTitle}` : act.description}
                     </p>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       {new Date(act.createdAt).toLocaleString(undefined, {
                         dateStyle: "medium",
                         timeStyle: "short",
@@ -309,7 +310,7 @@ export default function DashboardOverviewPage() {
                 </div>
 
                 <div className="text-right font-mono">
-                  <span className="font-bold text-emerald-400">
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                     +${act.amount}
                   </span>
                   <span className="text-[10px] text-slate-500 block">
@@ -323,12 +324,12 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Recent Files Table */}
-      <div className="rounded-2xl glass-card p-6 border border-slate-800">
+      <div className="rounded-3xl glass-card p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-md">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-white">Recent Uploads</h3>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Recent Uploads</h3>
           <Link
             href="/dashboard/files"
-            className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+            className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold"
           >
             View all files →
           </Link>
@@ -345,7 +346,7 @@ export default function DashboardOverviewPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+              <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-3">File Title</th>
                   <th className="py-3 px-3">Size</th>
@@ -356,30 +357,30 @@ export default function DashboardOverviewPage() {
                   <th className="py-3 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                 {recentFiles.map((f) => (
-                  <tr key={f.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 px-3 font-medium text-white max-w-[200px] truncate">
+                  <tr key={f.id} className="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3 px-3 font-bold text-slate-900 dark:text-white max-w-[200px] truncate">
                       {f.title}
                     </td>
-                    <td className="py-3 px-3 font-mono">{formatBytes(f.sizeBytes)}</td>
+                    <td className="py-3 px-3 font-mono font-medium">{formatBytes(f.sizeBytes)}</td>
                     <td className="py-3 px-3">
                       <Badge variant="default">{f.category}</Badge>
                     </td>
-                    <td className="py-3 px-3 font-semibold">{f.downloadCount}</td>
-                    <td className="py-3 px-3 font-semibold text-emerald-400">
+                    <td className="py-3 px-3 font-bold">{f.downloadCount}</td>
+                    <td className="py-3 px-3 font-bold text-emerald-600 dark:text-emerald-400">
                       {f.qualifiedDownloadCount || 0}
                     </td>
-                    <td className="py-3 px-3 text-slate-400">{formatDate(f.createdAt)}</td>
+                    <td className="py-3 px-3 text-slate-500 dark:text-slate-400">{formatDate(f.createdAt)}</td>
                     <td className="py-3 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleCopy(f.slug)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                           title="Copy Link"
                         >
                           {copiedSlug === f.slug ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
+                            <Check className="w-4 h-4 text-emerald-500" />
                           ) : (
                             <Copy className="w-4 h-4" />
                           )}
@@ -388,7 +389,7 @@ export default function DashboardOverviewPage() {
                           href={`/d/${f.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                           title="Open Download Page"
                         >
                           <ExternalLink className="w-4 h-4" />

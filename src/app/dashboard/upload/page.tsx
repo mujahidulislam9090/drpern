@@ -3,14 +3,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Button } from "@/components/ui/Button";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { FILE_CATEGORIES } from "@/lib/constants";
 import { formatBytes, parseResponseJson } from "@/lib/utils";
 import {
   Upload,
   File,
   CheckCircle2,
-  Copy,
-  Check,
   Lock,
   Layers,
   AlertCircle,
@@ -48,7 +47,6 @@ export default function DashboardUploadPage() {
     sizeBytes: string;
     shareUrl: string;
   } | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,36 +112,36 @@ export default function DashboardUploadPage() {
       if (expiresAt) formData.append("expiresAt", expiresAt);
       formData.append("isPublic", String(isPublic));
 
-      setUploadProgress(50);
+      setUploadProgress(60);
 
       const res = await fetch("/api/v1/files", {
         method: "POST",
         body: formData,
       });
 
-      setUploadProgress(85);
+      const { ok, data, error: apiErr } = await parseResponseJson(res);
 
-      const { ok, data, error: uploadErr } = await parseResponseJson(res);
-      if (!ok || !data?.file) {
-        throw new Error(uploadErr || "Upload failed");
+      if (!ok) {
+        throw new Error(apiErr || "Upload failed. Please check file size and storage quota.");
       }
 
       setUploadProgress(100);
-      setUploadedResult(data.file);
+
+      const fileData = data?.file || data;
+      setUploadedResult({
+        slug: fileData.slug,
+        title: fileData.title,
+        sizeBytes: fileData.sizeBytes,
+        shareUrl: `/d/${fileData.slug}`,
+      });
+
       fetchQuota();
     } catch (err: any) {
-      setError(err.message || "Failed to upload file");
+      console.error("[DashboardUploadPage] Upload error:", err);
+      setError(err.message || "An unexpected error occurred during upload.");
     } finally {
       setUploading(false);
     }
-  };
-
-  const handleCopyLink = () => {
-    if (!uploadedResult) return;
-    const fullUrl = `${window.location.origin}${uploadedResult.shareUrl}`;
-    navigator.clipboard.writeText(fullUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const resetForm = () => {
@@ -159,63 +157,58 @@ export default function DashboardUploadPage() {
     setError("");
   };
 
-  const quotaPercent = quota && quota.limitMb > 0
-    ? Math.min(100, Math.round((quota.usedMb / quota.limitMb) * 100))
-    : 0;
-
   return (
-    <div className="space-y-8 animate-fade-in max-w-3xl">
-      {/* Header & Storage Quota */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Upload New File
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Upload files securely. Generate shareable download links and earn from qualified traffic.
-          </p>
-        </div>
-
-        {/* Real User Storage Quota Badge */}
-        {quota && (
-          <div className="p-3.5 rounded-2xl glass-card border border-slate-800 shrink-0 min-w-[200px]">
-            <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-300 mb-1.5">
-              <span className="flex items-center gap-1.5">
-                <HardDrive className="w-3.5 h-3.5 text-blue-400" />
-                <span>Storage Quota</span>
-              </span>
-              <span className="text-white font-mono">{quota.usedMb} MB / {quota.limitMb} MB</span>
-            </div>
-            <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
-              <div
-                className={`h-full transition-all duration-300 ${
-                  quotaPercent > 80 ? "bg-amber-500" : "bg-blue-500"
-                }`}
-                style={{ width: `${quotaPercent}%` }}
-              />
-            </div>
-          </div>
-        )}
+    <div className="space-y-8 animate-fade-in max-w-4xl">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          Upload New File
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Upload your software, mod, video, or documents to generate a monetized share link.
+        </p>
       </div>
 
+      {/* Quota Card */}
+      {quota && (
+        <div className="p-4 rounded-3xl glass-card border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              <HardDrive className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 dark:text-white">Storage Quota Status</p>
+              <p className="text-slate-500 dark:text-slate-400">
+                {quota.usedMb} MB used of {quota.limitMb} MB ({quota.count} files hosted)
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="font-bold font-mono text-purple-600 dark:text-purple-400 text-sm">
+              {Math.max(0, quota.limitMb - quota.usedMb)} MB Available
+            </span>
+          </div>
+        </div>
+      )}
+
       {error && (
-        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
+        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs sm:text-sm flex items-center gap-3">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {uploadedResult ? (
-        <div className="rounded-2xl glass-card p-8 text-center border-emerald-500/30 animate-fade-in">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mx-auto mb-4">
+        <div className="rounded-3xl glass-card p-8 sm:p-12 text-center border-emerald-500/30 animate-fade-in shadow-2xl space-y-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 mx-auto">
             <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Upload Complete!</h2>
-          <p className="text-sm text-slate-400 mb-6">
-            Your file <span className="font-semibold text-slate-200">{uploadedResult.title}</span> is live.
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Upload Complete!</h2>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+            Your file <span className="font-bold text-slate-900 dark:text-slate-200">{uploadedResult.title}</span> is live.
           </p>
 
-          <div className="max-w-xl mx-auto mb-8 p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2">
+          <div className="max-w-xl mx-auto p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-2">
             <input
               type="text"
               readOnly
@@ -224,24 +217,19 @@ export default function DashboardUploadPage() {
                   ? `${window.location.origin}${uploadedResult.shareUrl}`
                   : uploadedResult.shareUrl
               }
-              className="flex-1 bg-transparent text-sm text-blue-400 font-mono px-3 py-1 outline-none truncate"
+              className="flex-1 bg-transparent text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-mono px-3 py-1 outline-none truncate font-bold"
             />
-            <Button size="sm" onClick={handleCopyLink} variant="secondary">
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-400 mr-1.5" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4 mr-1.5" />
-                  <span>Copy Link</span>
-                </>
-              )}
-            </Button>
+            <CopyButton
+              text={
+                typeof window !== "undefined"
+                  ? `${window.location.origin}${uploadedResult.shareUrl}`
+                  : uploadedResult.shareUrl
+              }
+              label="Copy Link"
+            />
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <a
               href={uploadedResult.shareUrl}
               target="_blank"
@@ -267,8 +255,8 @@ export default function DashboardUploadPage() {
             onClick={() => fileInputRef.current?.click()}
             className={`border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200 ${
               selectedFile
-                ? "border-blue-500/60 bg-blue-500/5"
-                : "border-slate-800 hover:border-slate-700 bg-slate-900/40"
+                ? "border-blue-500/60 bg-blue-50/50 dark:bg-blue-500/5 shadow-inner"
+                : "border-slate-300 dark:border-slate-800 hover:border-blue-500 dark:hover:border-slate-700 bg-slate-50/60 dark:bg-slate-900/40"
             }`}
           >
             <input
@@ -280,23 +268,23 @@ export default function DashboardUploadPage() {
 
             {selectedFile ? (
               <div className="flex flex-col items-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 mb-3">
                   <File className="w-7 h-7" />
                 </div>
-                <p className="text-base font-semibold text-white truncate max-w-md">
+                <p className="text-base font-bold text-slate-900 dark:text-white truncate max-w-md">
                   {selectedFile.name}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
                   {formatBytes(selectedFile.size)} • Click or drop another to replace
                 </p>
               </div>
             ) : (
               <div className="flex flex-col items-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 border border-slate-700 text-slate-400 mb-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-200/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 mb-3">
                   <Upload className="w-7 h-7" />
                 </div>
-                <p className="text-base font-semibold text-white">
-                  Drop your file here, or <span className="text-blue-400">browse</span>
+                <p className="text-base font-bold text-slate-900 dark:text-white">
+                  Drop your file here, or <span className="text-blue-600 dark:text-blue-400">browse</span>
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
                   Supports all formats up to 100 MB per file • Max 1 GB free quota
@@ -308,13 +296,13 @@ export default function DashboardUploadPage() {
           {/* Upload Progress Bar */}
           {uploading && (
             <div className="rounded-2xl glass-card p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-300 font-medium">
+              <div className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 font-medium">
                 <span>Uploading to storage...</span>
                 <span>{uploadProgress}%</span>
               </div>
-              <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 transition-all duration-300 ease-out"
+                  className="h-full bg-blue-600 transition-all duration-300 ease-out"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
@@ -322,15 +310,15 @@ export default function DashboardUploadPage() {
           )}
 
           {/* Metadata Form */}
-          <div className="rounded-2xl glass-card p-6 sm:p-8 space-y-6 border border-slate-800">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Layers className="w-4 h-4 text-blue-400" />
+          <div className="rounded-3xl glass-card p-6 sm:p-8 space-y-6 border border-slate-200 dark:border-slate-800 shadow-xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Layers className="w-4 h-4 text-blue-500" />
               <span>File Details & Access Options</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   File Title
                 </label>
                 <input
@@ -338,19 +326,19 @@ export default function DashboardUploadPage() {
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="My File Title"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="e.g. Mod Pack Release v2.4"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Category
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
                 >
                   {FILE_CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -362,34 +350,34 @@ export default function DashboardUploadPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Description (Optional)
               </label>
               <textarea
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add brief details about this file..."
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                placeholder="Add brief details about this download..."
+                className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors resize-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Tags (comma separated)
                 </label>
                 <input
                   type="text"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
-                  placeholder="software, pdf, bundle"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="game, mod, skin"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Download Limit (Optional)
                 </label>
                 <input
@@ -398,17 +386,17 @@ export default function DashboardUploadPage() {
                   value={downloadLimit}
                   onChange={(e) => setDownloadLimit(e.target.value)}
                   placeholder="e.g. 500"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
 
-            {/* Password Protection */}
-            <div className="pt-2 border-t border-slate-800/80 space-y-3">
+            {/* Optional Password Protection */}
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800/80 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-amber-400" />
-                  <span className="text-sm font-medium text-slate-200">
+                  <Lock className="w-4 h-4 text-amber-500" />
+                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                     Password Protection
                   </span>
                 </div>
@@ -417,7 +405,7 @@ export default function DashboardUploadPage() {
                   id="enablePassword"
                   checked={enablePassword}
                   onChange={(e) => setEnablePassword(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-700 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
               </div>
 
@@ -427,20 +415,20 @@ export default function DashboardUploadPage() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter unlock password"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                    placeholder="Enter file unlock password"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
                   />
                 </div>
               )}
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <div className="pt-4">
               <Button
                 type="submit"
                 loading={uploading}
                 size="lg"
-                className="w-full"
+                className="w-full py-3.5 text-sm font-bold shadow-lg shadow-blue-600/20"
               >
                 <span>Upload & Generate Link</span>
                 <ArrowRight className="w-4 h-4 ml-2" />

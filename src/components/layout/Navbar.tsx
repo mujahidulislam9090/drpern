@@ -20,6 +20,8 @@ import {
   CreditCard,
   Users,
   Settings,
+  HelpCircle,
+  BarChart3,
 } from "lucide-react";
 
 export function Navbar() {
@@ -37,62 +39,64 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80 dark:border-slate-800/80 backdrop-blur-md transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Logo */}
+          {/* Brand Logo */}
           <Link href="/" aria-label="DropEarn Home" className="flex items-center gap-2.5 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
               <FileUp className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xl font-black tracking-tight text-white">
-                Drop<span className="text-blue-500">Earn</span>
+              <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                Drop<span className="text-blue-600 dark:text-blue-500">Earn</span>
               </span>
             </div>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Navigation */}
           <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 text-sm font-medium">
             <Link
               href="/"
-              className="text-slate-300 hover:text-white transition-colors"
+              className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               Home
             </Link>
             <Link
               href="/upload"
-              className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              <Upload className="w-4 h-4 text-blue-400" />
+              <Upload className="w-4 h-4 text-blue-500" />
               <span>Upload</span>
             </Link>
             <Link
               href="/rates"
-              className="text-slate-300 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              Rates & Payouts
+              <BarChart3 className="w-4 h-4 text-emerald-500" />
+              <span>Rates & Payouts</span>
             </Link>
             <Link
               href="/faq"
-              className="text-slate-300 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              FAQ
+              <HelpCircle className="w-4 h-4 text-purple-500" />
+              <span>FAQ</span>
             </Link>
+
             {user && (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
-                >
-                  <LayoutDashboard className="w-4 h-4 text-indigo-400" />
-                  <span>Dashboard</span>
-                </Link>
-              </>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4 text-indigo-500" />
+                <span>Dashboard</span>
+              </Link>
             )}
+
             {user?.role === "ADMIN" && (
               <Link
                 href="/admin"
-                className="flex items-center gap-1.5 text-purple-400 hover:text-purple-300 font-semibold transition-colors"
+                className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors"
               >
                 <Shield className="w-4 h-4" />
                 <span>Admin Panel</span>
@@ -100,12 +104,12 @@ export function Navbar() {
             )}
           </nav>
 
-          {/* Actions: Theme Toggle + Auth */}
+          {/* Desktop Right Actions: Theme Toggle + Auth */}
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
 
             {loading ? (
-              <div className="h-9 w-24 rounded-xl bg-slate-800 animate-pulse" />
+              <div className="h-9 w-24 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
             ) : user ? (
               <div className="relative">
                 <button
@@ -113,9 +117,9 @@ export function Navbar() {
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   aria-expanded={userDropdownOpen}
                   aria-haspopup="menu"
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-slate-200 transition-colors text-sm cursor-pointer"
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors text-sm cursor-pointer"
                 >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 font-bold text-xs">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-bold text-xs">
                     {user.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
                   </div>
                   <span className="max-w-[120px] truncate font-medium">
@@ -124,65 +128,65 @@ export function Navbar() {
                 </button>
 
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-60 rounded-2xl glass-card p-2 shadow-2xl border border-slate-700 animate-fade-in">
-                    <div className="px-3 py-2 border-b border-slate-800 mb-1">
-                      <p className="text-xs font-semibold text-white truncate">
+                  <div className="absolute right-0 mt-2 w-64 rounded-2xl glass-card p-2 shadow-2xl border border-slate-200 dark:border-slate-700 animate-fade-in z-50">
+                    <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 mb-1">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                         {user.displayName || "Creator Account"}
                       </p>
-                      <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                     </div>
 
                     <Link
                       href="/dashboard"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                     >
-                      <LayoutDashboard className="w-4 h-4 text-blue-400" />
+                      <LayoutDashboard className="w-4 h-4 text-blue-500" />
                       <span>Dashboard Overview</span>
                     </Link>
 
                     <Link
                       href="/dashboard/files"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                     >
-                      <FolderOpen className="w-4 h-4 text-indigo-400" />
+                      <FolderOpen className="w-4 h-4 text-indigo-500" />
                       <span>My Uploaded Files</span>
                     </Link>
 
                     <Link
                       href="/dashboard/analytics"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                     >
-                      <TrendingUp className="w-4 h-4 text-purple-400" />
+                      <TrendingUp className="w-4 h-4 text-purple-500" />
                       <span>Traffic & Analytics</span>
                     </Link>
 
                     <Link
                       href="/dashboard/withdraw"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                     >
-                      <CreditCard className="w-4 h-4 text-emerald-400" />
+                      <CreditCard className="w-4 h-4 text-emerald-500" />
                       <span>Revenue & Withdrawals</span>
                     </Link>
 
                     <Link
                       href="/dashboard/referrals"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                     >
-                      <Users className="w-4 h-4 text-amber-400" />
+                      <Users className="w-4 h-4 text-amber-500" />
                       <span>Referral Program</span>
                     </Link>
 
                     <Link
                       href="/dashboard/settings"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                     >
-                      <Settings className="w-4 h-4 text-slate-400" />
+                      <Settings className="w-4 h-4 text-slate-500" />
                       <span>Profile & Settings</span>
                     </Link>
 
@@ -190,7 +194,7 @@ export function Navbar() {
                       <Link
                         href="/admin"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-purple-400 hover:text-purple-300 hover:bg-purple-950/30 transition-colors border-t border-slate-800/80 mt-1 pt-2"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors border-t border-slate-200 dark:border-slate-800/80 mt-1 pt-2"
                       >
                         <Shield className="w-4 h-4" />
                         <span>Admin Panel</span>
@@ -202,7 +206,7 @@ export function Navbar() {
                         setUserDropdownOpen(false);
                         logout();
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors border-t border-slate-800/80 mt-1"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors border-t border-slate-200 dark:border-slate-800/80 mt-1 cursor-pointer"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
@@ -226,99 +230,111 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu toggle */}
-          <div className="flex md:hidden items-center">
+          {/* Mobile menu toggle & quick theme toggle */}
+          <div className="flex md:hidden items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden glass-panel border-b border-slate-800 px-4 pt-2 pb-6 space-y-3">
+          <div className="md:hidden glass-panel border-b border-slate-200 dark:border-slate-800 px-4 pt-3 pb-6 space-y-3 animate-fade-in">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
+              className="block px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               Home
             </Link>
             <Link
               href="/upload"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
+              className="block px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               Upload File
             </Link>
+            <Link
+              href="/rates"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              Rates & Payouts
+            </Link>
+            <Link
+              href="/faq"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              FAQ
+            </Link>
+
             {user ? (
               <>
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
-                >
-                  Dashboard Overview
-                </Link>
-                <Link
-                  href="/dashboard/files"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
-                >
-                  My Files
-                </Link>
-                <Link
-                  href="/dashboard/analytics"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
-                >
-                  Analytics
-                </Link>
-                <Link
-                  href="/dashboard/withdraw"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
-                >
-                  Revenue & Withdrawals
-                </Link>
-                <Link
-                  href="/dashboard/referrals"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
-                >
-                  Referrals
-                </Link>
-                <Link
-                  href="/dashboard/settings"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
-                >
-                  Profile & Settings
-                </Link>
-                {user.role === "ADMIN" && (
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1">
                   <Link
-                    href="/admin"
+                    href="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-lg text-base font-semibold text-purple-400 hover:bg-purple-950/30"
+                    className="block px-3.5 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
                   >
-                    Admin Panel
+                    Dashboard Overview
                   </Link>
-                )}
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    logout();
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-lg text-base font-medium text-red-400 hover:bg-red-500/10"
-                >
-                  Sign Out
-                </button>
+                  <Link
+                    href="/dashboard/files"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3.5 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    My Files
+                  </Link>
+                  <Link
+                    href="/dashboard/analytics"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3.5 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    Analytics
+                  </Link>
+                  <Link
+                    href="/dashboard/withdraw"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3.5 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    Revenue & Withdrawals
+                  </Link>
+                  <Link
+                    href="/dashboard/settings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3.5 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    Settings
+                  </Link>
+                  {user.role === "ADMIN" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3.5 py-2 rounded-xl text-sm font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      logout();
+                    }}
+                    className="w-full text-left px-3.5 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+                  >
+                    Sign Out
+                  </button>
+                </div>
               </>
             ) : (
-              <div className="pt-2 flex flex-col gap-2">
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
                 <Button
                   variant="outline"
                   onClick={() => openAuth("login")}
@@ -327,7 +343,7 @@ export function Navbar() {
                   Sign In
                 </Button>
                 <Button onClick={() => openAuth("register")} className="w-full">
-                  Create Account
+                  Create Free Account
                 </Button>
               </div>
             )}

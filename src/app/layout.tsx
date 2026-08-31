@@ -74,7 +74,7 @@ export default function RootLayout({
     process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-1544515292334176";
 
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Google AdSense Meta Verification */}
         <meta name="google-adsense-account" content="ca-pub-1544515292334176" />
@@ -88,7 +88,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className="bg-[#090d16] text-slate-100 antialiased min-h-screen flex flex-col selection:bg-blue-600 selection:text-white transition-colors duration-200">
+      <body className="bg-[var(--background)] text-[var(--foreground)] antialiased min-h-screen flex flex-col selection:bg-blue-600 selection:text-white transition-colors duration-150">
         <ThemeProvider>
           <ToastProvider>
             <AuthProvider>

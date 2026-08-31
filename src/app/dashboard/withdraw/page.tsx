@@ -119,13 +119,13 @@ export default function WithdrawalsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-7xl animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
           Withdrawals & Payouts
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
           Request real payouts of your confirmed earnings. Minimum threshold: $10.00.
         </p>
       </div>
@@ -140,7 +140,7 @@ export default function WithdrawalsPage() {
               ? "Eligible for immediate payout request"
               : `Minimum $${minWithdrawal.toFixed(2)} required`
           }
-          icon={<DollarSign className="w-5 h-5 text-emerald-400" />}
+          icon={<DollarSign className="w-5 h-5 text-emerald-500" />}
           highlight={true}
         />
 
@@ -148,36 +148,36 @@ export default function WithdrawalsPage() {
           title="Pending Earnings"
           value={formatCurrency(balances?.pendingBalance || "0.00")}
           subtitle="Awaiting qualification review"
-          icon={<Clock className="w-5 h-5 text-amber-400" />}
+          icon={<Clock className="w-5 h-5 text-amber-500" />}
         />
 
         <StatCard
           title="Total Paid Out"
           value={formatCurrency(balances?.totalWithdrawn || "0.00")}
           subtitle="Completed lifetime payouts"
-          icon={<CheckCircle2 className="w-5 h-5 text-purple-400" />}
+          icon={<CheckCircle2 className="w-5 h-5 text-purple-500" />}
         />
       </div>
 
       {/* Withdrawal Request Form */}
-      <div className="rounded-2xl glass-card p-6 sm:p-8 border border-slate-800">
-        <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-          <CreditCard className="w-4 h-4 text-blue-400" />
+      <div className="rounded-3xl glass-card p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-md">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+          <CreditCard className="w-4 h-4 text-blue-500" />
           <span>Submit Payout Request</span>
         </h3>
-        <p className="text-xs text-slate-400 mb-6">
-          Payouts are manually verified and processed by administrators to protect network security.
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
+          Payouts are processed within 24-48 hours via your selected payment channel.
         </p>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+          <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+          <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{success}</span>
           </div>
@@ -185,7 +185,7 @@ export default function WithdrawalsPage() {
 
         <form onSubmit={handleWithdrawSubmit} className="space-y-4 max-w-xl">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Withdrawal Amount ($ USD)
             </label>
             <input
@@ -197,29 +197,29 @@ export default function WithdrawalsPage() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder={`Min $${minWithdrawal.toFixed(2)}`}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Payout Method
             </label>
             <select
               value={payoutMethod}
               onChange={(e) => setPayoutMethod(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
             >
-              <option value="PAYPAL">PayPal (Email)</option>
-              <option value="CRYPTO_USDT">USDT (TRC20 / ERC20)</option>
-              <option value="CRYPTO_BTC">Bitcoin (BTC)</option>
-              <option value="BANK_TRANSFER">Bank Wire Transfer</option>
+              <option value="PAYPAL">PayPal (Email address)</option>
+              <option value="CRYPTO_USDT">USDT (TRC-20 / ERC-20)</option>
+              <option value="CRYPTO_BTC">Bitcoin (BTC address)</option>
+              <option value="BANK_TRANSFER">Direct Bank Wire Transfer</option>
               <option value="OTHER">Other Method</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Recipient Account / Wallet Address
             </label>
             <input
@@ -234,12 +234,12 @@ export default function WithdrawalsPage() {
                   ? "Enter crypto wallet address"
                   : "Account / Routing / IBAN info"
               }
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Notes (Optional)
             </label>
             <input
@@ -247,7 +247,7 @@ export default function WithdrawalsPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Any additional payout instructions..."
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
 
@@ -255,14 +255,14 @@ export default function WithdrawalsPage() {
             type="submit"
             disabled={!canWithdraw}
             loading={submitting}
-            className="w-full sm:w-auto mt-2"
+            className="w-full sm:w-auto mt-2 px-6 shadow-md shadow-blue-600/20"
           >
             <span>Request Payout</span>
             <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
 
           {!canWithdraw && (
-            <p className="text-xs text-amber-400 mt-2">
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 font-medium">
               You need at least ${minWithdrawal.toFixed(2)} in available balance to request a payout.
             </p>
           )}
@@ -270,8 +270,8 @@ export default function WithdrawalsPage() {
       </div>
 
       {/* Withdrawal History Table */}
-      <div className="rounded-2xl glass-card p-6 border border-slate-800">
-        <h3 className="text-base font-bold text-white mb-4">
+      <div className="rounded-3xl glass-card p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-md">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">
           Withdrawal History
         </h3>
 
@@ -284,7 +284,7 @@ export default function WithdrawalsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+              <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-3">Date Requested</th>
                   <th className="py-3 px-3">Amount</th>
@@ -294,25 +294,25 @@ export default function WithdrawalsPage() {
                   <th className="py-3 px-3">Processed Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300 font-medium">
                 {withdrawals.map((w) => (
-                  <tr key={w.id} className="hover:bg-slate-800/40">
-                    <td className="py-3 px-3 text-slate-400">
+                  <tr key={w.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3 px-3 text-slate-500 dark:text-slate-400">
                       {formatDate(w.requestedAt)}
                     </td>
-                    <td className="py-3 px-3 font-semibold text-white">
+                    <td className="py-3 px-3 font-bold text-slate-900 dark:text-white font-mono">
                       {formatCurrency(w.amount)}
                     </td>
                     <td className="py-3 px-3">
-                      <span className="font-mono text-slate-300">
+                      <span className="font-mono text-slate-700 dark:text-slate-300">
                         {w.payoutMethod}
                       </span>
                     </td>
                     <td className="py-3 px-3">{getStatusBadge(w.status)}</td>
-                    <td className="py-3 px-3 text-slate-400 max-w-[200px] truncate">
+                    <td className="py-3 px-3 text-slate-500 dark:text-slate-400 max-w-[200px] truncate">
                       {w.adminNote || w.rejectionReason || "—"}
                     </td>
-                    <td className="py-3 px-3 text-slate-400">
+                    <td className="py-3 px-3 text-slate-500 dark:text-slate-400">
                       {w.processedAt ? formatDate(w.processedAt) : "Pending"}
                     </td>
                   </tr>
